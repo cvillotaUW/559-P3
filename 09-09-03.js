@@ -7,6 +7,9 @@ import { GrObject } from "./libs/CS559-Framework/GrObject.js";
 import * as InputHelpers from "./libs/CS559/inputHelpers.js";
 import * as SimpleObjects from "./libs/CS559-Framework/SimpleObjects.js";
 import { shaderMaterial } from "./libs/CS559-Framework/shaderHelper.js";
+import { Player } from "./Player.js";
+import { PlayerController } from "./PlayerController.js";
+import { Painter } from "./Painter.js";
 
 
   let mydiv = document.getElementById("div1");
@@ -35,7 +38,7 @@ import { shaderMaterial } from "./libs/CS559-Framework/shaderHelper.js";
   
   const dirtyMask2 = new T.TextureLoader().load("./textures/dirtmask.png");
 
-  let world = new GrWorld({ width: mydiv ? 600 : 800, where: mydiv });
+  let world = new GrWorld({ width: 1920/2, height: 1080/2, where: mydiv });
 
   let paintMat = shaderMaterial("./shaders/paint.vs", "./shaders/paint.fs", {
     uniforms: {tex: {value: texture}, point: {value: new T.Vector2(-10, -10)}}
@@ -67,68 +70,37 @@ import { shaderMaterial } from "./libs/CS559-Framework/shaderHelper.js";
   fancySign.mesh.geometry = new T.PlaneGeometry(2, 2, segments, segments);
 
 
-  
-  let guy = new SimpleObjects.GrGuy({paintables: paintables, texMat: texMat, renderer: world.renderer});
-  world.add(guy)
+  let canvas = world.renderer.domElement
+  let guy = new Player()
+  let controller = new PlayerController(guy.mesh, canvas, world.active_camera);
+  let painter = new Painter(paintables, world.renderer)
 
-  world.go()
+  guy.mesh.translateY(1)
+  guy.mesh.translateZ(3)
+  world.active_camera.lookAt(fancySign.mesh.position)
+  world.scene.add(guy.mesh)
+  fancySign.stepWorld = (delta) =>{
+    world.active_camera.position.set(guy.mesh.position.x, guy.mesh.position.y, guy.mesh.position.z)
+    controller.move(delta)
+    painter.paint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()))
+  }
+  world.go({predraw: () => {
 
     
+    
+}})
 
+  
 
-  let speed = 1;
-
-  let canvas = world.renderer.domElement
   canvas.tabIndex = 1;
-  canvas.onkeydown = function(event){
-      if(!event.repeat){
-          switch(event.code){
-              case 'KeyW':
-                  guy.input_forward += speed;
-                  break;
-              case 'KeyA':
-                  guy.input_turn += speed;
-                  break;
-              case 'KeyS':
-                  guy.input_forward -= speed;
-                  break;
-              case 'KeyD':
-                  guy.input_turn -= speed;
-                  break;
-              case 'Space':
-                  guy.input_up += speed
-                  break;
-              case 'ShiftLeft':
-                  guy.input_up -= speed
-
-          }
+    
+  canvas.addEventListener('click', () => {
+      
+      if(!world.active_controls?.isLocked){
+          world.active_controls?.lock(true)
       }
       
-  };
-
-  canvas.onkeyup = function(event){
-      switch(event.code){
-          case 'KeyW':
-              guy.input_forward -= speed;
-              break;
-          case 'KeyA':
-              guy.input_turn -= speed;
-              break;
-          case 'KeyS':
-              guy.input_forward += speed;
-              break;
-          case 'KeyD':
-              guy.input_turn += speed;
-              break;
-          case 'Space':
-              guy.input_up -= speed
-              break;
-          case 'ShiftLeft':
-              guy.input_up += speed
-      }
-  };
-
-
+  });
 
 
 // CS559 2025 Workbook

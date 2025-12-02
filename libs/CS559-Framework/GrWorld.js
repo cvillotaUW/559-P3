@@ -23,6 +23,7 @@ import { SimpleGroundPlane } from "./GroundPlane.js";
 import * as T from "../CS559-Three/build/three.module.js";
 import { OrbitControls } from "../CS559-Three/examples/jsm/controls/OrbitControls.js";
 import { FlyControls } from "../CS559-Three/examples/jsm/controls/FlyControls.js";
+import { PointerLockControls } from "../CS559-Three/examples/jsm/controls/PointerLockControls.js";
 
 import { VRHelper } from './VRHelper.js'
 import Stats from './Stats.js'
@@ -195,46 +196,14 @@ export class GrWorld {
 
         // make the controls
         if (this.active_camera.isPerspectiveCamera) {
-            this.orbit_controls = new OrbitControls(
+            this.orbit_controls = new PointerLockControls(
                 this.active_camera,
                 this.renderer.domElement
             );
-            this.orbit_controls.keys = { UP: 87, BOTTOM: 83, LEFT: 65, RIGHT: 68 };
-            this.orbit_controls.target = lookat;
 
             // We also want a pointer to active set of controls.
             this.active_controls = this.orbit_controls;
-            this.fly_controls = new FlyControls(
-                this.active_camera,
-                this.renderer.domElement
-            );
-            this.fly_controls.dragToLook = true;
-            this.fly_controls.rollSpeed = 0.1;
-            // this.fly_controls.dispose();
-            this.fly_controls.disconnect();
-            this.fly_controls.enabled = false;
-            let flySaveState = function () {
-                this.position0 = new T.Vector3(
-                    this.object.position.x,
-                    this.object.position.y,
-                    this.object.position.z
-                );
-            };
-            let flyReset = function () {
-                if (this.position0) {
-                    this.object.position.set(
-                        this.position0.x,
-                        this.position0.y,
-                        this.position0.z
-                    );
-                }
-                this.update(0.1);
-            };
-            // the old fly controls register doesn't work
-            if (!this.fly_controls.saveState) {
-                this.fly_controls.saveState = flySaveState;
-                this.fly_controls.reset = flyReset;
-            }
+            
         } // only make controls for PerspectiveCameras
 
         // if we either specify where things go in the DOM or we made our
