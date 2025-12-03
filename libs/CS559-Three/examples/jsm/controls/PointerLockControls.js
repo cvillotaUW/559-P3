@@ -85,7 +85,7 @@ class PointerLockControls extends Controls {
 		 * @type {number}
 		 * @default 0
 		 */
-		this.minPolarAngle = 0;
+		this.minPolarAngle = Math.PI/16;
 
 		/**
 		 * Camera pitch, upper limit. Range is '[0, Math.PI]' in radians.
@@ -93,7 +93,7 @@ class PointerLockControls extends Controls {
 		 * @type {number}
 		 * @default Math.PI
 		 */
-		this.maxPolarAngle = Math.PI;
+		this.maxPolarAngle = 15*Math.PI/16;
 
 		/**
 		 * Multiplier for how much the pointer movement influences the camera rotation.

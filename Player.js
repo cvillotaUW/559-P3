@@ -19,11 +19,9 @@ export class Player{
     );
     const mesh = new T.Mesh(geometry, material);
     const head = new T.Mesh(geometry, material);
-    mesh.add(head);
-    head.translateZ(.5)
-    head.translateY(.5)
     head.scale.set(.5, .5, .5)
     this.mesh = mesh;
+    this.gun = head;
   }    
   
 

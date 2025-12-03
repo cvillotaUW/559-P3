@@ -23,8 +23,7 @@ export class Painter{
     const renderScene = new T.Scene();
     const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
     this.renderer = renderer
-    this.oldSize = new T.Vector2()
-    renderer.getSize(this.oldSize)
+
 
     // Create a plane to hold the paint texture to be rendered
     const renderGeom = new T.PlaneGeometry(2, 2); // Full-screen plane
@@ -43,6 +42,7 @@ export class Painter{
     this.camera = camera
     this.plane = plane
     this.mat = paintMat
+    this.lastPaint = 0
   }    
   
   /**
@@ -50,26 +50,31 @@ export class Painter{
    * @param {*} delta 
    * @param {*} timeOfDay 
    */
-  paint(position, direction) {
+  paint(position, direction, delta) {
     
+    this.lastPaint += delta
+    if(this.lastPaint > 20){
+        this.lastPaint = 0
+        this.raycaster.set(position, direction)
 
-    this.raycaster.set(position, direction)
-
-    let intersects = this.raycaster.intersectObjects(this.paintables, true)
-    
-        // If the ray hits an object, log the intersection
-    if (intersects.length > 0 && intersects[0].object.material.uniforms.tex.value.image && this.mat.uniforms.tex.value.image) {
-
-        this.mat.uniforms.point.value = intersects[0].uv
-        this.renderer.copyTextureToTexture(intersects[0].object.material.uniforms.dirty.value, this.mat.uniforms.tex.value)
-
-        this.renderer.setSize(512, 512)
-        this.renderer.setRenderTarget(this.renderTarget)
-        this.renderer.render(this.renderScene, this.camera)
-        this.renderer.setRenderTarget(null)
+        let intersects = this.raycaster.intersectObjects(this.paintables, true)
         
-        this.renderer.copyTextureToTexture(this.renderTarget.texture, intersects[0].object.material.uniforms.dirty.value)
-        this.renderer.setSize(this.oldSize.x, this.oldSize.y)
+            // If the ray hits an object, log the intersection
+        if (intersects.length > 0 && intersects[0].object.material.uniforms.tex.value.image && this.mat.uniforms.tex.value.image) {
+            let oldSize = new T.Vector2()
+            this.renderer.getSize(oldSize)
+            this.mat.uniforms.point.value = intersects[0].uv
+            this.renderer.copyTextureToTexture(intersects[0].object.material.uniforms.dirty.value, this.mat.uniforms.tex.value)
+
+            this.renderer.setSize(512, 512)
+            this.renderer.setRenderTarget(this.renderTarget)
+            this.renderer.render(this.renderScene, this.camera)
+            this.renderer.setRenderTarget(null)
+            
+            this.renderer.copyTextureToTexture(this.renderTarget.texture, intersects[0].object.material.uniforms.dirty.value)
+            this.renderer.setSize(oldSize.x, oldSize.y)
+        }
     }
-  }
+    }
+    
 }
