@@ -69,6 +69,24 @@ export class Painter{
             this.renderer.setSize(512, 512)
             this.renderer.setRenderTarget(this.renderTarget)
             this.renderer.render(this.renderScene, this.camera)
+
+            //how much left?
+            const pixels = new Uint8Array(512 * 512 * 4);  // *4 because RGBA, 4 per pixel
+            this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 512, 512, pixels);
+
+            let totalRed = 0;
+
+            // Red is dirty mask, all we need
+            for (let i = 0; i < pixels.length; i += 4) {
+                const red = pixels[i];
+                totalRed += red;
+            }
+
+            const possibleRed = (pixels.length / 4) * 255
+            const redness = totalRed / possibleRed * 100;  // As a percentage
+            console.log(`Red percentage: ${redness}%`);
+
+
             this.renderer.setRenderTarget(null)
             
             this.renderer.copyTextureToTexture(this.renderTarget.texture, intersects[0].object.material.uniforms.dirty.value)
