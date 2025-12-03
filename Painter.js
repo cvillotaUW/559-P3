@@ -61,6 +61,9 @@ export class Painter{
         
             // If the ray hits an object, log the intersection
         if (intersects.length > 0 && intersects[0].object.material.uniforms.tex.value.image && this.mat.uniforms.tex.value.image) {
+            if(intersects[0].object.material.uniforms.isClean.value){   
+                return {name: intersects[0].object.name, dirtiness: 0}
+            }
             let oldSize = new T.Vector2()
             this.renderer.getSize(oldSize)
             this.mat.uniforms.point.value = intersects[0].uv
@@ -84,15 +87,20 @@ export class Painter{
 
             const possibleRed = (pixels.length / 4) * 255
             const redness = totalRed / possibleRed * 100;  // As a percentage
-            console.log(`Red percentage: ${redness}%`);
 
 
             this.renderer.setRenderTarget(null)
+            if(redness < 5){
+                intersects[0].object.material.uniforms.isClean.value = true
+            }    
             
             this.renderer.copyTextureToTexture(this.renderTarget.texture, intersects[0].object.material.uniforms.dirty.value)
             this.renderer.setSize(oldSize.x, oldSize.y)
+            
+            return {name: intersects[0].object.name, dirtiness: redness}
         }
+        return null
     }
-    }
+  }
     
 }

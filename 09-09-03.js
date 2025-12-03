@@ -12,9 +12,13 @@ import { PlayerController } from "./PlayerController.js";
 import { Painter } from "./Painter.js";
 import { PaintCube } from "./PaintCube.js";
 
-
+  //ui stuff
   let mydiv = document.getElementById("div1");
   const game = document.createElement('div');
+
+  let world = new GrWorld({ width: 1920/5, height: 1080/5, where: game });
+  let canvas = world.renderer.domElement
+
   mydiv.appendChild(game)
   let slider_u = new InputHelpers.LabelSlider("repetitions", {
     width: 400,
@@ -32,6 +36,100 @@ import { PaintCube } from "./PaintCube.js";
     initial: 1,
     where: mydiv,
   });
+  const crosshair = document.createElement('div');
+  crosshair.style.position = 'absolute';
+  crosshair.style.width = '30px';
+  crosshair.style.height = '30px';
+  crosshair.style.backgroundColor = 'transparent';
+  crosshair.style.border = '3px solid white';
+  crosshair.style.borderRadius = '50%';
+  crosshair.style.pointerEvents = 'none'; // Prevent crosshair from blocking interactions
+  crosshair.style.zIndex = '1000';
+  game.appendChild(crosshair)
+
+  function updateCrosshairPosition() {
+    const rect = canvas.getBoundingClientRect(); // Get the canvas size and position
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    crosshair.style.width =  `${rect.width/100}px`;
+    crosshair.style.height = `${rect.width/100}px`;
+    crosshair.style.border = `${3}px solid white`;
+    // Set the crosshair position to the center of the canvas
+    crosshair.style.left = `${centerX - crosshair.offsetWidth / 2}px`;
+    crosshair.style.top = `${centerY - crosshair.offsetHeight / 2}px`;
+  }
+  updateCrosshairPosition()
+
+
+  // Create the container for the name and progress bar
+  const infoBox = document.createElement('div');
+  infoBox.style.position = 'absolute';
+  infoBox.style.top = '20px'; // 20px from the top of the screen
+  infoBox.style.left = '20px'; // 20px from the left of the screen
+  infoBox.style.width = '200px'; // Set width of the box
+  infoBox.style.padding = '10px';
+  infoBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  infoBox.style.borderRadius = '8px';
+  infoBox.style.color = 'white';
+  infoBox.style.fontFamily = 'Arial, sans-serif';
+  infoBox.style.fontSize = '14px';
+  infoBox.style.zIndex = '1000'; // Make sure it appears on top
+  infoBox.style.pointerEvents = 'none'; // Prevent blocking interactions
+  game.appendChild(infoBox);
+
+  // Create the name text element
+  const nameText = document.createElement('div');
+  nameText.style.fontSize = '16px';
+  nameText.style.fontWeight = 'bold';
+  nameText.textContent = 'Player Name'; // Replace with the name you want to display
+  infoBox.appendChild(nameText);
+
+  // Create the progress bar container
+  const progressBarContainer = document.createElement('div');
+  progressBarContainer.style.width = '100%';
+  progressBarContainer.style.height = '5px';
+  progressBarContainer.style.backgroundColor = '#555';
+  progressBarContainer.style.borderRadius = '5px';
+  progressBarContainer.style.marginTop = '10px'; // Add some space between the name and progress bar
+  infoBox.appendChild(progressBarContainer);
+
+  // Create the progress bar itself
+  const progressBar = document.createElement('div');
+  progressBar.style.height = '100%';
+  progressBar.style.backgroundColor = '#4caf50'; // Green color for progress
+  progressBar.style.borderRadius = '5px';
+  progressBar.style.width = '0%'; // Start with 0% width, this will be updated dynamically
+  progressBarContainer.appendChild(progressBar);
+  
+  const percentageText = document.createElement('div');
+  percentageText.style.fontSize = '16px';
+  percentageText.style.fontWeight = 'bold';
+  percentageText.style.marginTop = '5px'; // Add some space between the progress bar and percentage number
+  percentageText.textContent = "yuh"
+  infoBox.appendChild(percentageText);
+
+  // Function to update the progress bar percentage
+  function updateProgressBar(percentage, name) {
+    // Ensure the percentage stays within 0-100
+    percentage = Math.max(0, Math.min(100, percentage));
+    progressBar.style.width = `${percentage}%`; // Set the width of the progress bar
+    nameText.textContent = name; // Replace with the name you want to display
+    percentageText.textContent = `${Math.round(percentage)}%`; // Replace with the name you want to display
+  }
+
+  function updateBoxPosition(){
+      const rect = canvas.getBoundingClientRect(); // Get the canvas size and position
+      infoBox.style.top = `${rect.height/50+8}px`; // 20px from the top of the screen
+      infoBox.style.left = `${rect.width/50+8}px`; // 20px from the left of the screen
+      infoBox.style.width = `${rect.width/4}px`; // Set width of the box
+      infoBox.style.height = `${rect.height/6}px`;  
+      nameText.style.fontSize = `${rect.width*0.03}px`; // Font size based on window width
+      percentageText.style.fontSize = `${rect.width*0.02}px`; // Font size based on window width
+  }
+  updateBoxPosition()
+
+
+
   /**
    * @type {T.Mesh[]}
    */
@@ -42,17 +140,18 @@ import { PaintCube } from "./PaintCube.js";
   
   const dirtyMask2 = new T.TextureLoader().load("./textures/dirtmask.png");
 
-  let world = new GrWorld({ width: 1920/5, height: 1080/5, where: game });
+  
+
 
   let paintMat = shaderMaterial("./shaders/paint.vs", "./shaders/paint.fs", {
     uniforms: {tex: {value: texture}, point: {value: new T.Vector2(-10, -10)}}
   });
 
   let texMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
-    uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}}
+    uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}, isClean: {value: false}}
   });
   let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
-        uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}}
+        uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}, isClean: {value: false}}
       });
   let bmat = new T.MeshStandardMaterial({map: texture})
 
@@ -75,13 +174,13 @@ import { PaintCube } from "./PaintCube.js";
 
 
 
-  let canvas = world.renderer.domElement
   let guy = new Player()
   let painter = new Painter(paintables, world.renderer)
   let paintCube = new PaintCube("./textures/dirtmask.png", texture)
   world.scene.add(paintCube.mesh)
   paintCube.mesh.translateY(3)
   paintables.push(paintCube.mesh)
+  paintCube.mesh.name = "paintcube"
 
   
   let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice());
@@ -96,7 +195,10 @@ import { PaintCube } from "./PaintCube.js";
   fancySign.stepWorld = (delta) =>{
     world.active_camera.position.set(guy.mesh.position.x, guy.mesh.position.y, guy.mesh.position.z)
     controller.move(delta)
-    if(isPainting) painter.paint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()), delta)
+    if(isPainting){
+      let result = painter.paint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()), delta)
+      if(result) updateProgressBar(result.dirtiness, result.name)
+    }
   }
   world.go({predraw: () => {
 
@@ -134,29 +236,11 @@ import { PaintCube } from "./PaintCube.js";
       
   });
 
-const crosshair = document.createElement('div');
-crosshair.style.position = 'absolute';
-crosshair.style.width = '30px';
-crosshair.style.height = '30px';
-crosshair.style.backgroundColor = 'transparent';
-crosshair.style.border = '3px solid white';
-crosshair.style.borderRadius = '50%';
-crosshair.style.pointerEvents = 'none'; // Prevent crosshair from blocking interactions
-crosshair.style.zIndex = '1000';
-game.appendChild(crosshair)
 
-function updateCrosshairPosition() {
-  const rect = canvas.getBoundingClientRect(); // Get the canvas size and position
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  crosshair.style.width =  `${rect.width/100}px`;
-  crosshair.style.height = `${rect.width/100}px`;
-  crosshair.style.border = `${3}px solid white`;
-  // Set the crosshair position to the center of the canvas
-  crosshair.style.left = `${centerX - crosshair.offsetWidth / 2}px`;
-  crosshair.style.top = `${centerY - crosshair.offsetHeight / 2}px`;
-}
-updateCrosshairPosition()
+
+
+
+
 // Update crosshair position on window resize
 window.addEventListener('resize', () => {
   
@@ -167,5 +251,6 @@ window.addEventListener('resize', () => {
     world.renderer.setSize(1920/5, 1080/5);
   }
   updateCrosshairPosition(); // Reposition crosshair on resize
+  updateBoxPosition();
 });
 // CS559 2025 Workbook

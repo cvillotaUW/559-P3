@@ -6,7 +6,7 @@ export class Paintable {
     constructor(dirtyMaskPath, texture) {
         let dirtyMask = new T.TextureLoader().load(dirtyMaskPath);
         this.dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
-              uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}}
+              uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}, isClean: {value: false}}
         });
       
     }
