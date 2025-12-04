@@ -192,7 +192,7 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
   const gltf = new GLTFLoader();
 
 // Load a glTF or GLB file
-let model = await gltf.loadAsync('./models/car.glb')
+let model = await gltf.loadAsync('./models/Car.glb')
   world.scene.add(model.scene);
   console.log(model)
  model.scene.traverse((child) => {
