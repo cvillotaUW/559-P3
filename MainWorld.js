@@ -14,10 +14,11 @@ import { PaintCube } from "./PaintCube.js";
 import { OBJLoader } from "./libs/CS559-Three/examples/jsm/loaders/OBJLoader.js";
 import { MTLLoader } from "./libs/CS559-Three/examples/jsm/loaders/MTLLoader.js";
 import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.js";
-async function go(){
+async function go(graphicsGood, paintWait){
     //ui stuff
     const game = document.getElementById("div1");
 
+    const vic = document.getElementById('victoryScreen')
     let world = new GrWorld({ width: 1920/2, height: 1080/2, where: game, groundplanesize: 15});
     let canvas = world.renderer.domElement
     let nozzleType = 0
@@ -123,12 +124,17 @@ async function go(){
     percentageText.textContent = ""
     infoBox.appendChild(percentageText);
 
+    let cleans = {"Car": false, "Driveway": false, "House": false}
     // Function to update the progress bar percentage
     function updateProgressBar(percentage, name) {
       // Ensure the percentage stays within 0-100
       progressBar.style.width = `${percentage}%`; // Set the width of the progress bar
       nameText.textContent = name; // Replace with the name you want to display
-      percentageText.textContent = percentage< 100? `${Math.round(percentage*10)/10}%` : "Clean!"; // Replace with the name you want to display
+      if (percentage >= 100){
+        cleans[name] = true
+      }
+      if(cleans["Car"] && cleans["Driveway"] && cleans["House"]) vic.style.display = 'block'
+      percentageText.textContent = percentage< 100? `${Math.floor(percentage*10)/10}%` : "Clean!"; // Replace with the name you want to display
     }
 
     function updateBoxPosition(){
@@ -177,31 +183,31 @@ async function go(){
     const gltf = new GLTFLoader();
 
   // Load a glTF or GLB file
-  let model = await gltf.loadAsync('./models/Car.glb')
-    world.scene.add(model.scene);
-  model.scene.traverse((child) => {
-      if (child.isMesh) {
-        // Now you have access to the materials and textures of each mesh
-        child.name = "Car"
-        child.size = 0.01
-        child.start = 21.8
-        child.end = 20.5
+  if(graphicsGood){
+      let model = await gltf.loadAsync('./models/Car.glb')
+      world.scene.add(model.scene);
+    model.scene.traverse((child) => {
+        if (child.isMesh) {
+          // Now you have access to the materials and textures of each mesh
+          child.name = "Car"
+          child.size = 0.01
+          child.start = 21.8
+          child.end = 20.5
 
-        let dirtyMask = new T.TextureLoader().load("./textures/carDirt.png");
-        let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
-              uniforms: {tex: {value: child.material.map}, dirty: {value: dirtyMask}, isClean: {value: false}}
-        });
-        child.material = dirtyMat
+          let dirtyMask = new T.TextureLoader().load("./textures/carDirt.png");
+          let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
+                uniforms: {tex: {value: child.material.map}, dirty: {value: dirtyMask}, isClean: {value: false}}
+          });
+          child.material = dirtyMat
 
-      }
-    })
-    model.scene.scale.set(.035, .035, .035)
-    model.scene.position.set(-3, 0, 5)
-    model.scene.rotateY(Math.PI)
-
-    let house = await gltf.loadAsync('./models/Farm House.glb')
-    world.scene.add(house.scene);
-    
+        }
+      })
+      model.scene.scale.set(.035, .035, .035)
+      model.scene.position.set(-3, 0, 5)
+      model.scene.rotateY(Math.PI)
+      paintables.push(model.scene)
+       let house = await gltf.loadAsync('./models/Farm House.glb')
+  world.scene.add(house.scene);
   house.scene.traverse((child) => {
       if (child.isMesh) {
         // Now you have access to the materials and textures of each mesh
@@ -220,8 +226,33 @@ async function go(){
     })
     house.scene.scale.set(.5, .5, .5)
     house.scene.position.set(0, 0, -3)
-    paintables.push(model.scene)
     paintables.push(house.scene)    
+  }
+  else{
+    let tex = new T.TextureLoader().load("./textures/carBox.png");
+    let car = new PaintCube("./textures/dirtmask.png", tex)
+    car.mesh.position.set(-3, 0, 5)
+    car.mesh.scale.set(1.25, 1.25, 1.25)
+    car.mesh.size = .08
+    car.mesh.start = 56.25
+    car.mesh.end = 10.25
+    car.mesh.name = "Car"
+    world.scene.add(car.mesh)
+    paintables.push(car.mesh)
+
+    let houseTex = new T.TextureLoader().load("./textures/houseBox.png");
+    let house = new PaintCube("./textures/dirtmask.png", tex)
+    house.mesh.position.set(-1.5, 0, -5.5)
+    house.mesh.scale.set(6, 6, 6)
+    house.mesh.size = .03
+    house.mesh.start = 56.25
+    house.mesh.end = 10.25
+    house.mesh.name = "House"
+    world.scene.add(house.mesh)
+    paintables.push(house.mesh)
+  }
+
+ 
     
     const geometry = new T.PlaneGeometry(8, 8);
       let drivewayMask = new T.TextureLoader().load("./textures/dirtmask.png");
@@ -250,7 +281,7 @@ async function go(){
     let guy = new Player()
     guy.gun = gun.scene
 
-    let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice());
+    let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice(), graphicsGood? 10 : 15);
 
     guy.gun.scale.set(0.45, 0.45, 0.45)
     let painter = new Painter(paintables, world.renderer)
@@ -348,8 +379,11 @@ async function go(){
       lastPaint += delta
       world.active_camera.position.set(guy.mesh.position.x, guy.mesh.position.y, guy.mesh.position.z)
       controller.move(delta)
-      if(isPainting && lastPaint > 20){
+      if(isPainting && lastPaint > paintWait){
         lastPaint = 0
+        
+        painter.getPaintPoint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()))
+
         if(nozzleType == 1){
           world.camera.rotateX(Math.PI/32)
           painter.getPaintPoint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()))
@@ -374,7 +408,6 @@ async function go(){
         }
 
         
-        painter.getPaintPoint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()))
         let result = painter.paint()
         painter.clearPoints()
         if(result) updateProgressBar(result.dirtiness, result.name)
@@ -441,7 +474,19 @@ async function go(){
         }
         
     });
-
+    if(!world.active_controls?.isLocked){
+        world.active_controls?.lock(true)
+        if (game.requestFullscreen) {
+          game.requestFullscreen();
+        } else if (game.mozRequestFullScreen) { // Firefox
+          game.mozRequestFullScreen();
+        } else if (game.webkitRequestFullscreen) { // Chrome, Safari
+          game.webkitRequestFullscreen();
+        } else if (game.msRequestFullscreen) { // IE/Edge
+          game.msRequestFullscreen();
+        }
+        canvas.focus()
+    }
     canvas.addEventListener('mousedown', (e) => {
         if(e.button == 0) isPainting = true
         else if(e.button == 2){
@@ -487,4 +532,42 @@ async function go(){
   });
 
 }
-document.getElementById('startButton').addEventListener('click', go);
+
+
+let graphicsGood = true;
+let paintWait = 20;
+const uiContainer = document.getElementById('uiContainer');
+document.getElementById('startButton').addEventListener('click', function(){
+    uiContainer.style.display = 'none';
+    go(graphicsGood, paintWait);
+});
+
+const optionsButton = document.getElementById('optionsButton');
+const closeOptionsButton = document.getElementById('closeOptionsButton');
+// Event listener for the Options button
+optionsButton.addEventListener('click', function() {
+  optionsMenu.style.display = 'block'; // Show options menu
+  uiContainer.style.display = 'none'; // Hide UI container
+});
+
+// Event listener for closing the options menu
+closeOptionsButton.addEventListener('click', function() {
+  optionsMenu.style.display = 'none'; // Hide options menu
+  uiContainer.style.display = 'block'; // Show UI container again
+});
+
+
+const graphicsSelect = document.getElementById('graphicsSelect');
+const paintSelect = document.getElementById('paintSelect');
+
+
+
+graphicsSelect.addEventListener('change', function() {
+  graphicsGood = graphicsSelect.value == "Good"
+  console.log(graphicsGood)
+});
+
+paintSelect.addEventListener('change', function() {
+  paintWait = paintSelect.value == "Good" ? 20: 80
+  console.log(paintWait)
+});

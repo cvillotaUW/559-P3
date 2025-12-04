@@ -1,12 +1,61 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="./libs/CS559/style559.css" />
+    <link rel="stylesheet" href="style.css">
   </head>
 
   <body>
-  Group ID: 2539<br>
-    <div id="div1"></div>
+ <div id="idTag">Group ID: 2539</div>
+   <div id="uiContainer">
+    <div id="gameTitle">
+      <h1>Powerwash Simulator 599</h1> <!-- Game name -->
+    </div>
+
+    <div id="gameButtons">
+      <button id="startButton" class="gameButton">Start</button>
+      <button id="optionsButton" class="gameButton">Options</button>
+    </div>
+
+    <div id="instructions">
+      <h3>Controls:</h3>
+      <ul>
+        <li><strong>W, A, S, D</strong> - Move</li>
+        <li><strong>Space</strong> - Jump</li>
+        <li><strong>Left Click</strong> - Clean</li>
+        <li><strong>Right Click</strong> - Zoom</li>
+        <li><strong>Shift</strong> - Switch Nozzle Type</li>
+        <li><strong>Esc</strong> - Exit Fullscreen</li>
+      </ul>
+    </div>
+  </div>
+  <div id="optionsMenu" class="hidden">
+    <h2>Options</h2>
+    <div>
+      <label for="graphicsSelect">Graphics:</label>
+      <select id="graphicsSelect">
+        <option value="Good">Full graphics</option>
+        <option value="Bad">Simple Polygons</option>
+      </select>
+    </div>
+    <div>
+      <label for="paintSelect">Paint speed:</label>
+      <select id="paintSelect">
+        <option value="Good">Smooth</option>
+        <option value="Bad">Performance</option>
+      </select>
+    </div>
+    <button id="closeOptionsButton" class="gameButton">Close</button>
+  </div>
+    <div id="div1">
+        <div id="victoryScreen" class="hidden">
+        <div id="victoryMessage">
+          <h2>You Win!</h2>
+          <p>Congratulations, you have cleaned everything!</p>
+          <p>Esc to exit fullscreen, restart the page to play again.</p>
+        </div>
+      </div>
+    </div>
+
 <script type="importmap">
       {
           "imports": {
@@ -14,12 +63,12 @@
           }
       }
   </script>
-  <button id="startButton">Start World</button>
     <script src="MainWorld.js" type="module" defer></script>
-<!-- The screenshot and record buttons -->
+
+   <div id="attributions">Attributions:
     <br>Car by Poly by Google [CC-BY] via Poly Pizza
     <br>Farm house by Poly by Google [CC-BY] via Poly Pizza
-    
+    </div>
   </body>
 </html>
 

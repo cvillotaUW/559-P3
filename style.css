@@ -1,0 +1,244 @@
+
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #20232a;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* UI Container */
+#uiContainer {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000; /* Ensure UI is on top of game canvas */
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.75);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Game Title */
+#gameTitle h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  color: #4CAF50;
+}
+
+/* Buttons */
+#gameButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.gameButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.2em;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.gameButton:hover {
+  background-color: #45a049;
+}
+
+.gameButton:active {
+  background-color: #388e3c;
+}
+
+/* Instructions Section */
+#instructions {
+  font-size: 1.1em;
+  margin-top: 20px;
+}
+
+#instructions h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+#instructions ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+#instructions li {
+  margin-bottom: 8px;
+}
+
+/* Game Container */
+#gameContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: black;
+  display: none; /* Hidden until game starts */
+}
+#idTag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  font-size: 1.2em;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  border-radius: 5px;
+  z-index: 1001; /* Ensure it's above other elements */
+}
+/* Attributions Section */
+#attributions {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: #fff;
+  font-size: 1.2em;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  border-radius: 5px;
+  z-index: 1001; /* Ensure it's above other elements */
+}
+/* Options Menu (initially hidden) */
+#optionsMenu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 30px;
+  border-radius: 12px;
+  color: white;
+  z-index: 1002; /* Ensure options menu is above other elements */
+  display: none; /* Hidden initially */
+}
+
+
+/* Custom Styling for Difficulty Dropdown */
+#graphicsSelect {
+  background-color: #333;
+  color: white;
+  font-size: 1.2em;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  width: 100%; /* Make it stretch to fit the container */
+  max-width: 200px; /* Limit the width */
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+/* Style for select element when it's hovered or focused */
+#graphicsSelect:hover, #graphicsSelect:focus {
+  background-color: #444;
+  outline: none;
+}
+#paintSelect {
+  background-color: #333;
+  color: white;
+  font-size: 1.2em;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  width: 100%; /* Make it stretch to fit the container */
+  max-width: 200px; /* Limit the width */
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+/* Style for select element when it's hovered or focused */
+#paintSelect:hover, #paintSelect:focus {
+  background-color: #444;
+  outline: none;
+}
+/* Custom Style for Toggles (checkbox) */
+#soundToggle {
+  margin-top: 10px;
+  transform: scale(1.2); /* Make the checkbox a bit bigger */
+}
+
+/* Option Label Styling */
+#optionsMenu label {
+  font-size: 1.2em;
+  margin-top: 10px;
+  display: block;
+}
+
+/* Close Button Styling for the Options Menu */
+#closeOptionsButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+#closeOptionsButton:hover {
+  background-color: #45a049;
+}
+
+#closeOptionsButton:active {
+  background-color: #388e3c;
+}
+/* Victory Screen Styling */
+#victoryScreen {
+  position: fixed; /* Fixed positioning to overlay on top of the game */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Ensure it's on top of everything */
+  flex-direction: column;
+  text-align: center;
+  display: none; /* Hidden initially */
+}
+
+#victoryMessage {
+  background-color: rgba(0, 0, 0, 0.9);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+#victoryMessage h2 {
+  font-size: 3em;
+  color: #4CAF50; /* Victory color */
+  margin-bottom: 20px;
+}
+
+#victoryMessage p {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+#finalScore {
+  font-weight: bold;
+}
+

@@ -7,7 +7,7 @@ export class PlayerController{
     /**
    * @param {T.Mesh} player
    */
-  constructor(player, inputSource, looker, gun, colliders) {
+  constructor(player, inputSource, looker, gun, colliders, jumpheight) {
 
     //initialize input vars
     this.input_forward = 0
@@ -34,7 +34,7 @@ export class PlayerController{
                   this.input_right -= speed;
                   break;
               case 'Space':
-                  if(this.grounded) this.y_velocity += speed*10
+                  if(this.grounded) this.y_velocity += speed*jumpheight
                   break;
 
           }
