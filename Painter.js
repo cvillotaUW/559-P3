@@ -105,10 +105,10 @@ export class Painter{
             //based on start/end
             let end = intersects[0].object.end ? intersects[0].object.end : 5
             let start = intersects[0].object.start ? intersects[0].object.start : 57
-            console.log(end, start, redness)
 
             this.renderer.setRenderTarget(null)
             if(redness < end){
+                console.log(end, redness, "yeah science")
                 intersects[0].object.material.uniforms.isClean.value = true
             }    
             

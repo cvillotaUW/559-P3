@@ -34,7 +34,7 @@ export class PlayerController{
                   this.input_right -= speed;
                   break;
               case 'Space':
-                  if(this.grounded) this.y_velocity += speed*15
+                  if(this.grounded) this.y_velocity += speed*10
                   break;
 
           }
@@ -83,9 +83,9 @@ export class PlayerController{
 
     this.gun.rotation.copy(this.looker.rotation)
     this.gun.position.copy(this.player.position)
-    this.gun.translateZ(-.55*.4)
-    this.gun.translateX(.15*.4)
-    this.gun.translateY(-.2*.4)
+    this.gun.translateZ(-.55*.45)
+    this.gun.translateX(.15*.45)
+    this.gun.translateY(-.2*.45)
     this.gun.rotateX(Math.PI/8)
     this.gun.rotateY(Math.PI/3)
 

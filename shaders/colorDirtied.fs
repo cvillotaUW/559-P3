@@ -9,6 +9,6 @@
 void main()
 {
 
-    gl_FragColor = vec4(v_uv.x, v_uv.y, 0, 1.);
+    gl_FragColor = mix(vec4(color, 1), vec4(87./255., 43./255., 21./255., 1), max(texture2D(dirty, v_uv).r-float(isClean), 0.));
 }
 

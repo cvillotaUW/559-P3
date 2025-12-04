@@ -18,7 +18,7 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
   let mydiv = document.getElementById("div1");
   const game = document.createElement('div');
 
-  let world = new GrWorld({ width: 1920/2, height: 1080/2, where: game });
+  let world = new GrWorld({ width: 1920/2, height: 1080/2, where: game, groundplanesize: 15});
   let canvas = world.renderer.domElement
 
   mydiv.appendChild(game)
@@ -152,25 +152,12 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
   let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
         uniforms: {tex: {value: texture}, dirty: {value: dirtyMask}, isClean: {value: false}}
       });
-  let bmat = new T.MeshStandardMaterial({map: texture})
 
-  let segments = 50;
-  let sphere =new SimpleObjects.GrSphere({ x: -3, y: 1.5, material: dirtyMat, widthSegments: segments, heightSegments: segments})
-  world.add(sphere);
-  paintables.push(sphere.mesh)
-
-  let simpleSign = new SimpleObjects.dirtySign({ x: 3, y: 1, size: 1, texture: texture, dirtyMask: dirtyMask2, renderer: world.renderer})
-  world.add(
-    simpleSign
-  ); 
-  paintables.push(simpleSign.mesh)  
   let fancySign = new SimpleObjects.dirtySign({ x: .1, y: 1, size: 1, texture: texture, dirtyMask: dirtyMask, renderer: world.renderer})
   world.add(
     fancySign
   );
-  paintables.push(fancySign.mesh)
-  fancySign.mesh.geometry = new T.PlaneGeometry(2, 2, segments, segments);
-
+  fancySign.mesh.visible = false
 
   
   
@@ -180,11 +167,9 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
 // Load a glTF or GLB file
 let model = await gltf.loadAsync('./models/Car.glb')
   world.scene.add(model.scene);
-  console.log(model)
  model.scene.traverse((child) => {
     if (child.isMesh) {
       // Now you have access to the materials and textures of each mesh
-      console.log('Material of this mesh:', child.material);
       child.name = "Car"
       child.size = 0.01
       child.start = 21.8
@@ -195,32 +180,58 @@ let model = await gltf.loadAsync('./models/Car.glb')
             uniforms: {tex: {value: child.material.map}, dirty: {value: dirtyMask}, isClean: {value: false}}
       });
       child.material = dirtyMat
-      // If you want to get the textures applied to this material:
-      const material = child.material;
-      if (material.map) {
-        console.log('Diffuse texture:', material.map); // This is the base color texture
-      }
-      if (material.normalMap) {
-        console.log('Normal map:', material.normalMap);
-      }
-      if (material.metalnessMap) {
-        console.log('Metalness map:', material.metalnessMap);
-      }
-      if (material.roughnessMap) {
-        console.log('Roughness map:', material.roughnessMap);
-      }
+
     }
   })
   model.scene.scale.set(.035, .035, .035)
-  model.scene.position.set(0, 0, 3)
-  model.scene.rotateY(Math.PI/2)
+  model.scene.position.set(-3, 0, 5)
+  model.scene.rotateY(Math.PI)
 
-  let paintCube = new PaintCube("./textures/dirtmask.png", texture)
-  world.scene.add(paintCube.mesh)
-  paintCube.mesh.translateY(3)
-  paintables.push(paintCube.mesh)
-  paintCube.mesh.name = "paintcube"
+  let house = await gltf.loadAsync('./models/Farm House.glb')
+  world.scene.add(house.scene);
+  
+ house.scene.traverse((child) => {
+    if (child.isMesh) {
+      // Now you have access to the materials and textures of each mesh
+      child.name = "House"
+      child.size = 0.02
+      child.start = 56.25
+      child.end = 4
+
+      let dirtyMask = new T.TextureLoader().load("./textures/dirtmask.png");
+      let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
+            uniforms: {tex: {value: child.material.map}, dirty: {value: dirtyMask}, isClean: {value: false}}
+      });
+      child.material = dirtyMat
+
+    }
+  })
+  house.scene.scale.set(.5, .5, .5)
+  house.scene.position.set(0, 0, -3)
   paintables.push(model.scene)
+  paintables.push(house.scene)    
+  
+  const geometry = new T.PlaneGeometry(8, 8);
+    let drivewayMask = new T.TextureLoader().load("./textures/dirtmask.png");
+    let drivewayTex = new T.TextureLoader().load("./textures/driveWay.png");
+    let drivewayMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
+          uniforms: {tex: {value: drivewayTex}, dirty: {value: drivewayMask}, isClean: {value: false}}, side: T.DoubleSide
+    });
+    let driveWay =  new T.Mesh(geometry, drivewayMat)
+    world.scene.add(driveWay)
+
+    driveWay.translateY(0.01)
+    driveWay.rotateX(Math.PI/2)
+  
+    driveWay.translateX(-1.8677)
+    driveWay.size = 0.05
+    driveWay.name = "Driveway"
+    driveWay.start = 56.25
+    driveWay.end = 18
+    
+    driveWay.translateY(3)
+    paintables.push(driveWay)
+    
 
   let gun = await gltf.loadAsync('./models/watergun.glb')
 
@@ -229,19 +240,19 @@ let model = await gltf.loadAsync('./models/Car.glb')
 
   let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice());
 
-  guy.gun.scale.set(0.4, 0.4, 0.4)
+  guy.gun.scale.set(0.45, 0.45, 0.45)
   let painter = new Painter(paintables, world.renderer)
-  world.scene.add(painter.debugPlane)
 
   
   
   guy.mesh.translateY(2)
   guy.mesh.translateZ(3)
 
-  world.active_camera.lookAt(fancySign.mesh.position)
+  world.active_camera.lookAt(new T.Vector3(-3000, 0, 3000))
   world.scene.add(guy.mesh)
   world.scene.add(guy.gun)
   world.scene.add(controller.target)
+
 
 
 
@@ -295,7 +306,6 @@ function resetParticle(particle) {
     let resetPoint = nozzlePoint.getWorldPosition(new T.Vector3())
     let mainDirection = nozzlePoint.getWorldDirection(new T.Vector3)
     let target = mainDirection.add(resetPoint)
-    console.log(target)
 
     particle.sphere.position.set(resetPoint.x, resetPoint.y, resetPoint.z);
     particle.sphere.lookAt(target)
@@ -313,7 +323,6 @@ let lastTime = 0;
 let time = 0;
   fancySign.stepWorld = (delta) =>{
     if(zoom){
-      console.log("woah")
 
       world.active_camera.fov = T.MathUtils.lerp(world.active_camera.fov, 45, .2)
       world.active_camera.updateProjectionMatrix();
