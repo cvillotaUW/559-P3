@@ -11,7 +11,9 @@ import { Player } from "./Player.js";
 import { PlayerController } from "./PlayerController.js";
 import { Painter } from "./Painter.js";
 import { PaintCube } from "./PaintCube.js";
-
+import { OBJLoader } from "./libs/CS559-Three/examples/jsm/loaders/OBJLoader.js";
+import { MTLLoader } from "./libs/CS559-Three/examples/jsm/loaders/MTLLoader.js";
+import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.js";
   //ui stuff
   let mydiv = document.getElementById("div1");
   const game = document.createElement('div');
@@ -68,8 +70,9 @@ import { PaintCube } from "./PaintCube.js";
   infoBox.style.left = '20px'; // 20px from the left of the screen
   infoBox.style.width = '200px'; // Set width of the box
   infoBox.style.padding = '10px';
-  infoBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  infoBox.style.backgroundColor = 'rgba(89, 120, 255, 1)';
   infoBox.style.borderRadius = '8px';
+  infoBox.style.border = '3px solid black'
   infoBox.style.color = 'white';
   infoBox.style.fontFamily = 'Arial, sans-serif';
   infoBox.style.fontSize = '14px';
@@ -83,7 +86,6 @@ import { PaintCube } from "./PaintCube.js";
   nameText.style.fontWeight = 'bold';
   nameText.textContent = 'Player Name'; // Replace with the name you want to display
   infoBox.appendChild(nameText);
-
   // Create the progress bar container
   const progressBarContainer = document.createElement('div');
   progressBarContainer.style.width = '100%';
@@ -111,10 +113,9 @@ import { PaintCube } from "./PaintCube.js";
   // Function to update the progress bar percentage
   function updateProgressBar(percentage, name) {
     // Ensure the percentage stays within 0-100
-    percentage = Math.max(0, Math.min(100, percentage));
     progressBar.style.width = `${percentage}%`; // Set the width of the progress bar
     nameText.textContent = name; // Replace with the name you want to display
-    percentageText.textContent = `${Math.round(percentage)}%`; // Replace with the name you want to display
+    percentageText.textContent = `${percentage}%`; // Replace with the name you want to display
   }
 
   function updateBoxPosition(){
@@ -123,12 +124,24 @@ import { PaintCube } from "./PaintCube.js";
       infoBox.style.left = `${rect.width/50+8}px`; // 20px from the left of the screen
       infoBox.style.width = `${rect.width/4}px`; // Set width of the box
       infoBox.style.height = `${rect.height/6}px`;  
+      infoBox.style.border = `${rect.width/150}px solid black`
+
       nameText.style.fontSize = `${rect.width*0.03}px`; // Font size based on window width
       percentageText.style.fontSize = `${rect.width*0.02}px`; // Font size based on window width
   }
   updateBoxPosition()
 
-
+  //skybox
+  const loader = new T.CubeTextureLoader();
+  const skyboxTexture = loader.load([
+      'textures/px.png', 
+      'textures/nx.png', 
+      'textures/py.png', 
+      'textures/ny.png', 
+      'textures/pz.png', 
+      'textures/nz.png', 
+  ]);
+  world.scene.background = skyboxTexture
 
   /**
    * @type {T.Mesh[]}
@@ -173,19 +186,62 @@ import { PaintCube } from "./PaintCube.js";
   fancySign.mesh.geometry = new T.PlaneGeometry(2, 2, segments, segments);
 
 
+  
+  
+  
+  const gltf = new GLTFLoader();
 
+// Load a glTF or GLB file
+let model = await gltf.loadAsync('./models/car.glb')
+  world.scene.add(model.scene);
+  console.log(model)
+ model.scene.traverse((child) => {
+    if (child.isMesh) {
+      // Now you have access to the materials and textures of each mesh
+      console.log('Material of this mesh:', child.material);
+      child.name = "Car"
+      child.size = 0.01
+      child.start = 21.8
+      child.end = 20.5
+
+      let dirtyMask = new T.TextureLoader().load("./textures/carDirt.png");
+      let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
+            uniforms: {tex: {value: child.material.map}, dirty: {value: dirtyMask}, isClean: {value: false}}
+      });
+      child.material = dirtyMat
+      // If you want to get the textures applied to this material:
+      const material = child.material;
+      if (material.map) {
+        console.log('Diffuse texture:', material.map); // This is the base color texture
+      }
+      if (material.normalMap) {
+        console.log('Normal map:', material.normalMap);
+      }
+      if (material.metalnessMap) {
+        console.log('Metalness map:', material.metalnessMap);
+      }
+      if (material.roughnessMap) {
+        console.log('Roughness map:', material.roughnessMap);
+      }
+    }
+  })
+  model.scene.scale.set(.035, .035, .035)
+  model.scene.position.set(0, 0, 3)
+  model.scene.rotateY(Math.PI/2)
+  console.log("moving on")
   let guy = new Player()
   let painter = new Painter(paintables, world.renderer)
+  world.scene.add(painter.debugPlane)
   let paintCube = new PaintCube("./textures/dirtmask.png", texture)
   world.scene.add(paintCube.mesh)
   paintCube.mesh.translateY(3)
   paintables.push(paintCube.mesh)
   paintCube.mesh.name = "paintcube"
-
+  paintables.push(model.scene)
   
   let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice());
   
-  guy.mesh.translateY(1)
+  guy.mesh.translateY(20)
   guy.mesh.translateZ(3)
 
   world.active_camera.lookAt(fancySign.mesh.position)

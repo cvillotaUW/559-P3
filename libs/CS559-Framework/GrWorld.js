@@ -169,7 +169,7 @@ export class GrWorld {
             this.camera = params.camera;
         } else {
             this.camera = new T.PerspectiveCamera(
-                "fov" in params ? params.fov : 45,
+                "fov" in params ? params.fov : 90,
                 width / height,
                 "near" in params ? params.near : 0.1,
                 "far" in params ? params.far : 2000

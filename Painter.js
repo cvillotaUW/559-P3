@@ -11,7 +11,7 @@ export class Painter{
     //create painting texture
     let texture = new T.TextureLoader().load("./textures/empty.png");
     let paintMat = shaderMaterial("./shaders/paint.vs", "./shaders/paint.fs", {
-        uniforms: {tex: {value: texture}, point: {value: new T.Vector2(-10, -10)}}
+        uniforms: {tex: {value: texture}, point: {value: new T.Vector2(-10, -10)}, size: {value: 0.1}}
     });
 
     
@@ -43,6 +43,14 @@ export class Painter{
     this.plane = plane
     this.mat = paintMat
     this.lastPaint = 0
+        
+
+    const geometry = new T.PlaneGeometry(4, 4);
+    let debugMat = shaderMaterial("./shaders/texture.vs", "./shaders/texture.fs", {
+        uniforms: {tex: {value: this.renderTarget.texture}}
+      });
+    this.debugPlane =  new T.Mesh(geometry, debugMat)
+    this.debugPlane.translateY(6)
   }    
   
   /**
@@ -58,11 +66,17 @@ export class Painter{
         this.raycaster.set(position, direction)
 
         let intersects = this.raycaster.intersectObjects(this.paintables, true)
-        
             // If the ray hits an object, log the intersection
         if (intersects.length > 0 && intersects[0].object.material.uniforms.tex.value.image && this.mat.uniforms.tex.value.image) {
             if(intersects[0].object.material.uniforms.isClean.value){   
-                return {name: intersects[0].object.name, dirtiness: 0}
+                return {name: intersects[0].object.name, dirtiness: 100}
+            }
+
+            if(intersects[0].object.size){
+                this.mat.uniforms.size.value = intersects[0].object.size
+            }
+            else{
+                this.mat.uniforms.size.value = .2
             }
             let oldSize = new T.Vector2()
             this.renderer.getSize(oldSize)
@@ -88,16 +102,20 @@ export class Painter{
             const possibleRed = (pixels.length / 4) * 255
             const redness = totalRed / possibleRed * 100;  // As a percentage
 
+            //based on start/end
+            let end = intersects[0].object.end ? intersects[0].object.end : 5
+            let start = intersects[0].object.start ? intersects[0].object.start : 57
+            console.log(end, start, redness)
 
             this.renderer.setRenderTarget(null)
-            if(redness < 5){
+            if(redness < end){
                 intersects[0].object.material.uniforms.isClean.value = true
             }    
             
             this.renderer.copyTextureToTexture(this.renderTarget.texture, intersects[0].object.material.uniforms.dirty.value)
             this.renderer.setSize(oldSize.x, oldSize.y)
-            
-            return {name: intersects[0].object.name, dirtiness: redness}
+            let percentClean = (redness-start)/(end-start)*100
+            return {name: intersects[0].object.name, dirtiness: percentClean}
         }
         return null
     }
