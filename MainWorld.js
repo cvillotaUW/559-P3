@@ -206,7 +206,7 @@ async function go(graphicsGood, paintWait){
       model.scene.position.set(-3, 0, 5)
       model.scene.rotateY(Math.PI)
       paintables.push(model.scene)
-       let house = await gltf.loadAsync('./models/Farm House.glb')
+       let house = await gltf.loadAsync('./models/Farm house.glb')
   world.scene.add(house.scene);
   house.scene.traverse((child) => {
       if (child.isMesh) {
