@@ -18,26 +18,11 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
   let mydiv = document.getElementById("div1");
   const game = document.createElement('div');
 
-  let world = new GrWorld({ width: 1920/5, height: 1080/5, where: game });
+  let world = new GrWorld({ width: 1920/2, height: 1080/2, where: game });
   let canvas = world.renderer.domElement
 
   mydiv.appendChild(game)
-  let slider_u = new InputHelpers.LabelSlider("repetitions", {
-    width: 400,
-    min: 0,
-    max: 6,
-    step: 0.01,
-    initial: 2,
-    where: mydiv,
-  });
-  let slider_w = new InputHelpers.LabelSlider("wave height", {
-    width: 400,
-    min: 0,
-    max: 2,
-    step: 0.01,
-    initial: 1,
-    where: mydiv,
-  });
+  
   const crosshair = document.createElement('div');
   crosshair.style.position = 'absolute';
   crosshair.style.width = '30px';
@@ -84,7 +69,7 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
   const nameText = document.createElement('div');
   nameText.style.fontSize = '16px';
   nameText.style.fontWeight = 'bold';
-  nameText.textContent = 'Player Name'; // Replace with the name you want to display
+  nameText.textContent = 'Start cleaning!'; // Replace with the name you want to display
   infoBox.appendChild(nameText);
   // Create the progress bar container
   const progressBarContainer = document.createElement('div');
@@ -107,7 +92,7 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
   percentageText.style.fontSize = '16px';
   percentageText.style.fontWeight = 'bold';
   percentageText.style.marginTop = '5px'; // Add some space between the progress bar and percentage number
-  percentageText.textContent = "yuh"
+  percentageText.textContent = ""
   infoBox.appendChild(percentageText);
 
   // Function to update the progress bar percentage
@@ -115,7 +100,7 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
     // Ensure the percentage stays within 0-100
     progressBar.style.width = `${percentage}%`; // Set the width of the progress bar
     nameText.textContent = name; // Replace with the name you want to display
-    percentageText.textContent = `${percentage}%`; // Replace with the name you want to display
+    percentageText.textContent = percentage< 100? `${Math.round(percentage*10)/10}%` : "Clean!"; // Replace with the name you want to display
   }
 
   function updateBoxPosition(){
@@ -148,6 +133,7 @@ import { GLTFLoader } from "./libs/CS559-Three/examples/jsm/loaders/GLTFLoader.j
    */
   let paintables = []
   let isPainting = false
+  let zoom = false;
   const texture = new T.TextureLoader().load("./textures/Aerial_Campus18_9797.jpg");
   const dirtyMask = new T.TextureLoader().load("./textures/dirtmask.png");
   
@@ -228,39 +214,163 @@ let model = await gltf.loadAsync('./models/Car.glb')
   model.scene.scale.set(.035, .035, .035)
   model.scene.position.set(0, 0, 3)
   model.scene.rotateY(Math.PI/2)
-  console.log("moving on")
-  let guy = new Player()
-  let painter = new Painter(paintables, world.renderer)
-  world.scene.add(painter.debugPlane)
+
   let paintCube = new PaintCube("./textures/dirtmask.png", texture)
   world.scene.add(paintCube.mesh)
   paintCube.mesh.translateY(3)
   paintables.push(paintCube.mesh)
   paintCube.mesh.name = "paintcube"
   paintables.push(model.scene)
-  
+
+  let gun = await gltf.loadAsync('./models/watergun.glb')
+
+  let guy = new Player()
+  guy.gun = gun.scene
+
   let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice());
+
+  guy.gun.scale.set(0.4, 0.4, 0.4)
+  let painter = new Painter(paintables, world.renderer)
+  world.scene.add(painter.debugPlane)
+
   
-  guy.mesh.translateY(20)
+  
+  guy.mesh.translateY(2)
   guy.mesh.translateZ(3)
 
   world.active_camera.lookAt(fancySign.mesh.position)
   world.scene.add(guy.mesh)
   world.scene.add(guy.gun)
   world.scene.add(controller.target)
+
+
+
+  //particles
+  const particleCount = 1000;  // Number of particles in the pool
+const particlesGroup = new T.Group();  // Group to hold all particles
+const pool = [];  // To keep track of all particles
+
+
+
+// Create the particles in a pool but don't animate them yet
+for (let i = 0; i < particleCount; i++) {
+    const material = new T.PointsMaterial({
+        color: 0x00aaff,
+        size: 0.05,
+        transparent: true,
+        opacity: 1,
+    });  
+    const sphere = new T.Mesh(new T.SphereGeometry(0.025), material);
+    sphere.visible = false;  // Initially invisible, will be activated when needed
+    particlesGroup.add(sphere);
+    pool.push({
+        sphere: sphere,
+        velocity: new T.Vector3(0, 0, 0),  // Particle velocity
+        isActive: false,  // Track if the particle is active,
+        lifetime: 100
+    });
+}
+
+world.scene.add(particlesGroup);
+
+
+let nozzlePoint = new T.Group()
+guy.gun.add(nozzlePoint)
+
+nozzlePoint.rotateY(Math.PI/1.3)
+nozzlePoint.rotateX(Math.PI/2)
+nozzlePoint.translateY(.3)
+
+nozzlePoint.rotateX(3*Math.PI/2)
+
+nozzlePoint.rotateY(-Math.PI/17)
+
+nozzlePoint.rotateX(Math.PI/16)
+
+
+function resetParticle(particle) {
+    const random1 = Math.random() * 0.2 - 0.1;  
+    const random2 = Math.random() * 0.2 - 0.1;  
+
+    let resetPoint = nozzlePoint.getWorldPosition(new T.Vector3())
+    let mainDirection = nozzlePoint.getWorldDirection(new T.Vector3)
+    let target = mainDirection.add(resetPoint)
+    console.log(target)
+
+    particle.sphere.position.set(resetPoint.x, resetPoint.y, resetPoint.z);
+    particle.sphere.lookAt(target)
+    particle.sphere.visible = true;  // Make it visible
+    particle.velocity.set(
+        random1, // X velocity
+        random2,            // Y velocity (mostly upward)
+        1  // Z velocity
+    );
+    particle.lifetime = 100
+    particle.isActive = true;  // Mark as active
+}
+
+let lastTime = 0;
+let time = 0;
   fancySign.stepWorld = (delta) =>{
+    if(zoom){
+      console.log("woah")
+
+      world.active_camera.fov = T.MathUtils.lerp(world.active_camera.fov, 45, .2)
+      world.active_camera.updateProjectionMatrix();
+    }
+    else{
+      world.active_camera.fov = T.MathUtils.lerp(world.active_camera.fov, 90, .2)
+      world.active_camera.updateProjectionMatrix();
+    }
+    time+=delta
     world.active_camera.position.set(guy.mesh.position.x, guy.mesh.position.y, guy.mesh.position.z)
     controller.move(delta)
     if(isPainting){
       let result = painter.paint(world.camera.getWorldPosition(new T.Vector3()), world.camera.getWorldDirection(new T.Vector3()), delta)
       if(result) updateProgressBar(result.dirtiness, result.name)
     }
-  }
-  world.go({predraw: () => {
 
-    
-    
-}})
+    //update particles
+    if (time - lastTime > 50 && isPainting) {  // Emit every 50ms (can be adjusted)
+            lastTime = time;
+
+            // Find an inactive particle and reset it
+            for (let i = 0; i < pool.length; i++) {
+                const particle = pool[i];
+                if (!particle.isActive) {
+                    resetParticle(particle);
+                    break; // Only emit one particle at a time for simplicity
+                }
+            }
+            for (let i = 0; i < pool.length; i++) {
+                const particle = pool[i];
+                if (!particle.isActive) {
+                    resetParticle(particle);
+                    break; // Only emit one particle at a time for simplicity
+                }
+            }
+        }
+
+        // Update the position of active particles and handle them
+        for (let i = 0; i < pool.length; i++) {
+            const particle = pool[i];
+            if (particle.isActive) {
+                // Update position based on velocity
+                //particle.velocity.y -= 0.001;
+                particle.sphere.translateZ(particle.velocity.z * delta /100)
+                particle.sphere.translateY(particle.velocity.y * delta /100)
+                particle.sphere.translateX(particle.velocity.x * delta /100)
+
+                if (particle.lifetime < 0) {
+                    particle.sphere.visible = false;  // Hide the particle
+                    particle.isActive = false;  // Mark as inactive
+                }
+                particle.sphere.material.opacity = particle.lifetime/100
+                particle.lifetime-=delta/5
+            }
+        }
+  }
+  world.go()
 
   
 
@@ -282,16 +392,20 @@ let model = await gltf.loadAsync('./models/Car.glb')
       
   });
 
-  canvas.addEventListener('mousedown', () => {
-      isPainting = true
-      
+  canvas.addEventListener('mousedown', (e) => {
+      if(e.button == 0) isPainting = true
+      else if(e.button == 2){
+        zoom = true;
+      }
   });
 
-  canvas.addEventListener('mouseup', () => {
-      isPainting = false
+  canvas.addEventListener('mouseup', (e) => {
+      if(e.button == 0) isPainting = false
+      else if(e.button == 2){
+        zoom = false;
+      }
       
   });
-
 
 
 
@@ -304,7 +418,7 @@ window.addEventListener('resize', () => {
     world.renderer.setSize(window.innerWidth, window.innerWidth*1080/1920);
   }
   else{
-    world.renderer.setSize(1920/5, 1080/5);
+    world.renderer.setSize(1920/2, 1080/2);
   }
   updateCrosshairPosition(); // Reposition crosshair on resize
   updateBoxPosition();

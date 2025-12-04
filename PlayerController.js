@@ -3,7 +3,7 @@ import * as T from "./libs/CS559-Three/build/three.module.js";
 
 export class PlayerController{
 
-    static height = 0.5;
+    static height =1;
     /**
    * @param {T.Mesh} player
    */
@@ -82,10 +82,12 @@ export class PlayerController{
     this.player.lookAt(this.target.position)
 
     this.gun.rotation.copy(this.looker.rotation)
-    this.gun.rotateY(Math.PI)
     this.gun.position.copy(this.player.position)
-    this.gun.translateZ(.5)
-    this.gun.translateY(.5)
+    this.gun.translateZ(-.55*.4)
+    this.gun.translateX(.15*.4)
+    this.gun.translateY(-.2*.4)
+    this.gun.rotateX(Math.PI/8)
+    this.gun.rotateY(Math.PI/3)
 
     this.player.translateZ(this.input_forward * delta/250)
     this.player.translateY(this.y_velocity * delta /1000)
