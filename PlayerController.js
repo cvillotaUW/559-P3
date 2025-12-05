@@ -118,6 +118,19 @@ export class PlayerController{
 
     }
 
+    if (this.player.position.x > 15){
+        this.player.position.set(15, this.player.position.y, this.player.position.z)
+    }
+    if (this.player.position.x < -15){
+        this.player.position.set(-15, this.player.position.y, this.player.position.z)
+    }
+    if (this.player.position.z > 15){
+        this.player.position.set(this.player.position.x, this.player.position.y, 15)
+    }
+    if (this.player.position.z < -15){
+        this.player.position.set(this.player.position.x, this.player.position.y, -15)
+    }
+
     //gravitee
     this.raycaster.set(this.player.getWorldPosition(new T.Vector3()), this.down)
     this.raycaster.far = PlayerController.height

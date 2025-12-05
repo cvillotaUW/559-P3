@@ -192,7 +192,7 @@ async function go(graphicsGood, paintWait){
           child.name = "Car"
           child.size = 0.01
           child.start = 21.8
-          child.end = 20.5
+          child.end = 20.35
 
           let dirtyMask = new T.TextureLoader().load("./textures/carDirt.png");
           let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
@@ -214,7 +214,7 @@ async function go(graphicsGood, paintWait){
         child.name = "House"
         child.size = 0.02
         child.start = 56.25
-        child.end = 10
+        child.end = 11
 
         let dirtyMask = new T.TextureLoader().load("./textures/dirtmask.png");
         let dirtyMat = shaderMaterial("./shaders/texture.vs", "./shaders/dirtied.fs", {
@@ -235,18 +235,18 @@ async function go(graphicsGood, paintWait){
     car.mesh.scale.set(1.25, 1.25, 1.25)
     car.mesh.size = .08
     car.mesh.start = 56.25
-    car.mesh.end = 10.25
+    car.mesh.end = 9.5
     car.mesh.name = "Car"
     world.scene.add(car.mesh)
     paintables.push(car.mesh)
 
     let houseTex = new T.TextureLoader().load("./textures/houseBox.png");
     let house = new PaintCube("./textures/dirtmask.png", tex)
-    house.mesh.position.set(-1.5, 0, -5.5)
+    house.mesh.position.set(-1.5, 0, -3.5)
     house.mesh.scale.set(6, 6, 6)
     house.mesh.size = .03
     house.mesh.start = 56.25
-    house.mesh.end = 10.25
+    house.mesh.end = 9.5
     house.mesh.name = "House"
     world.scene.add(house.mesh)
     paintables.push(house.mesh)
@@ -270,9 +270,9 @@ async function go(graphicsGood, paintWait){
       driveWay.size = 0.05
       driveWay.name = "Driveway"
       driveWay.start = 56.25
-      driveWay.end = 18
+      driveWay.end = graphicsGood ? 2 : 4
       
-      driveWay.translateY(3)
+      driveWay.translateY(5)
       paintables.push(driveWay)
       
 
@@ -573,5 +573,5 @@ graphicsSelect.addEventListener('change', function() {
 });
 
 paintSelect.addEventListener('change', function() {
-  paintWait = paintSelect.value == "Good" ? 20: 80
+  paintWait = paintSelect.value == "Good" ? 20: 40
 });
