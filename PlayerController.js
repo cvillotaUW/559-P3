@@ -3,7 +3,7 @@ import * as T from "./libs/CS559-Three/build/three.module.js";
 
 export class PlayerController{
 
-    static height =1;
+    static height = 1;
     /**
    * @param {T.Mesh} player
    */
@@ -64,6 +64,9 @@ export class PlayerController{
     this.colliders = colliders
     this.gun = gun
     this.target = new T.Group
+    const mat = new T.MeshBasicMaterial()
+    const geom = new T.BoxGeometry(.1, .1, .1)
+    this.cube = new T.Mesh(geom, mat)
   }    
   
   /**
@@ -96,18 +99,19 @@ export class PlayerController{
     this.player.translateY(this.y_velocity * delta /1000)
     this.player.translateX(this.input_right * delta / 250)
     let end = this.player.getWorldPosition(new T.Vector3())
-    let direction = end.sub(original)
+    let direction = end.clone().sub(original)
     let length = direction.length()
     this.raycaster.set(original, direction)
     this.raycaster.far = length + .5
     let colliders = this.raycaster.intersectObjects(this.colliders, true)
     if(colliders.length > 0){
         let hit = colliders[0]
-
+        
+        this.cube.position.copy(hit.point)
         let moveTo = hit.point.clone().sub(direction.clone().normalize().multiplyScalar(0.5));
-
         // Compute sliding direction
         let normal = hit.face.normal.clone().applyMatrix3(new T.Matrix3().getNormalMatrix(colliders[0].object.matrixWorld)).normalize(); // normal of the surface hit
+
         direction.normalize()
         let slideDir = direction.clone().sub(normal.multiplyScalar(direction.dot(normal))).normalize().multiplyScalar(1-direction.dot(normal));
 

@@ -171,7 +171,7 @@ async function go(graphicsGood, paintWait){
     const texture = new T.TextureLoader().load("./textures/Aerial_Campus18_9797.jpg");
     const dirtyMask = new T.TextureLoader().load("./textures/dirtmask.png");
 
-    let fancySign = new SimpleObjects.dirtySign({ x: .1, y: 1, size: 1, texture: texture, dirtyMask: dirtyMask, renderer: world.renderer})
+    let fancySign = new SimpleObjects.dirtySign({ x: 16.1, y: 1, size: 0, texture: texture, dirtyMask: dirtyMask, renderer: world.renderer})
     world.add(
       fancySign
     );
@@ -286,7 +286,8 @@ async function go(graphicsGood, paintWait){
     guy.gun.scale.set(0.45, 0.45, 0.45)
     let painter = new Painter(paintables, world.renderer)
 
-    
+    //debug cube
+    //world.scene.add(controller.cube)
     
     guy.mesh.translateY(2)
     guy.mesh.translateZ(3)
