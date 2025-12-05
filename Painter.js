@@ -55,6 +55,7 @@ export class Painter{
     this.target = null
     this.empty = new T.Vector2(-10, -10)
     this.power = 1
+    this.godmode = 1;
   }    
   
   /**
@@ -64,16 +65,16 @@ export class Painter{
    */
   paint() {
 
-        console.log(this.points)
     if (this.points.length > 0 && this.target.material.uniforms.tex.value.image && this.mat.uniforms.tex.value.image) {
         if(this.target.material.uniforms.isClean.value){   
             return {name: this.target.name, dirtiness: 100}
         }
         if(this.target.size){
-            this.mat.uniforms.size.value = this.target.size * this.power
+            
+            this.mat.uniforms.size.value = this.target.size * this.power * this.godmode
         }
         else{
-            this.mat.uniforms.size.value = .2 * this.power
+            this.mat.uniforms.size.value = .2 * this.power * this.godmode
         }
         let oldSize = new T.Vector2()
         this.renderer.getSize(oldSize)
@@ -116,7 +117,6 @@ export class Painter{
 
         this.renderer.setRenderTarget(null)
         if(redness < end){
-            console.log(end, redness, "yeah science")
             this.target.material.uniforms.isClean.value = true
         }    
         

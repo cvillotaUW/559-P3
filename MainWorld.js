@@ -282,7 +282,7 @@ async function go(graphicsGood, paintWait){
     guy.gun = gun.scene
 
     let controller = new PlayerController(guy.mesh, canvas, world.active_camera, guy.gun, world.scene.children.slice(), graphicsGood? 10 : 15);
-
+    
     guy.gun.scale.set(0.45, 0.45, 0.45)
     let painter = new Painter(paintables, world.renderer)
 
@@ -293,6 +293,7 @@ async function go(graphicsGood, paintWait){
 
     world.active_camera.lookAt(new T.Vector3(-3000, 0, 3000))
     world.scene.add(guy.mesh)
+    guy.mesh.translateY(3)
     world.scene.add(guy.gun)
     world.scene.add(controller.target)
 
@@ -365,6 +366,7 @@ async function go(graphicsGood, paintWait){
   let lastTime = 0;
   let time = 0;
   let lastPaint = 0
+  let godmode = false;
     fancySign.stepWorld = (delta) =>{
       if(zoom){
 
@@ -528,7 +530,11 @@ async function go(graphicsGood, paintWait){
             painter.power = 1
           }
           else painter.power = .8
-        }
+    }
+    else if(!event.repeat && event.code == 'ControlLeft'){
+          godmode = !godmode
+          painter.godmode = godmode ? 4 : 1
+    }
   });
 
 }
@@ -564,10 +570,8 @@ const paintSelect = document.getElementById('paintSelect');
 
 graphicsSelect.addEventListener('change', function() {
   graphicsGood = graphicsSelect.value == "Good"
-  console.log(graphicsGood)
 });
 
 paintSelect.addEventListener('change', function() {
   paintWait = paintSelect.value == "Good" ? 20: 80
-  console.log(paintWait)
 });

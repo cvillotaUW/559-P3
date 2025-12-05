@@ -89,11 +89,38 @@ export class PlayerController{
     this.gun.rotateX(Math.PI/8)
     this.gun.rotateY(Math.PI/3)
 
+
+    //collsion
+    let original = this.player.getWorldPosition(new T.Vector3())
     this.player.translateZ(this.input_forward * delta/250)
     this.player.translateY(this.y_velocity * delta /1000)
     this.player.translateX(this.input_right * delta / 250)
+    let end = this.player.getWorldPosition(new T.Vector3())
+    let direction = end.sub(original)
+    let length = direction.length()
+    this.raycaster.set(original, direction)
+    this.raycaster.far = length + .5
+    let colliders = this.raycaster.intersectObjects(this.colliders, true)
+    if(colliders.length > 0){
+        let hit = colliders[0]
+
+        let moveTo = hit.point.clone().sub(direction.clone().normalize().multiplyScalar(0.5));
+
+        // Compute sliding direction
+        let normal = hit.face.normal.clone().applyMatrix3(new T.Matrix3().getNormalMatrix(colliders[0].object.matrixWorld)).normalize(); // normal of the surface hit
+        direction.normalize()
+        let slideDir = direction.clone().sub(normal.multiplyScalar(direction.dot(normal))).normalize().multiplyScalar(1-direction.dot(normal));
+
+        // Move along the sliding plane instead of stopping
+        moveTo.add(slideDir.multiplyScalar(length));
+
+        this.player.position.copy(moveTo);
+
+    }
+
     //gravitee
     this.raycaster.set(this.player.getWorldPosition(new T.Vector3()), this.down)
+    this.raycaster.far = PlayerController.height
     let intersects = this.raycaster.intersectObjects(this.colliders, true)
     if(intersects.length > 0){
         this.y_velocity = 0
