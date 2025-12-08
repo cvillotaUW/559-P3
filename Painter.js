@@ -107,7 +107,7 @@ export class Painter{
 
         //how much left?
         let redness = this.lastDirt[this.target.name]
-        if(this.lastCheck[this.target.name] > 20){
+        if(this.lastCheck[this.target.name] > 3){
           const pixels = new Uint8Array(512 * 512 * 4);  // *4 because RGBA, 4 per pixel
           this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 512, 512, pixels);
 
