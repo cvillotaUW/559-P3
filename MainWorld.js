@@ -205,7 +205,7 @@ async function go(graphicsGood, paintWait){
       model.scene.scale.set(.035, .035, .035)
       model.scene.position.set(-3, 0, 5)
       model.scene.rotateY(Math.PI)
-      paintables.push(model.scene)
+      paintables.push(model.scene.children[0])
        let house = await gltf.loadAsync('./models/Farm house.glb')
   world.scene.add(house.scene);
   house.scene.traverse((child) => {
@@ -226,7 +226,7 @@ async function go(graphicsGood, paintWait){
     })
     house.scene.scale.set(.5, .5, .5)
     house.scene.position.set(0, 0, -3)
-    paintables.push(house.scene)    
+    paintables.push(house.scene.children[0])    
   }
   else{
     let tex = new T.TextureLoader().load("./textures/carBox.png");

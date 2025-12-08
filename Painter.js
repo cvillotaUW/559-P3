@@ -8,13 +8,7 @@ export class Painter{
    */
   constructor(paintables, renderer) {
 
-    //create painting texture
-    let texture = new T.TextureLoader().load("./textures/empty.png");
-    let paintMat = shaderMaterial("./shaders/paint.vs", "./shaders/paint.fs", {
-        uniforms: {tex: {value: texture}, point: {value: new T.Vector2(-10, -10)}, point2: {value: new T.Vector2(-10, -10)}, point3: {value: new T.Vector2(-10, -10)}, point4: {value: new T.Vector2(-10, -10)}, point5: {value: new T.Vector2(-10, -10)}, size: {value: 0.1}}
-    });
 
-    
     //setup raycaster and targets
     this.paintables = paintables;
     this.raycaster = new T.Raycaster(new T.Vector3(), new T.Vector3(), 0, 10);
@@ -25,11 +19,21 @@ export class Painter{
     this.renderer = renderer
 
 
+    let renderPlanes = {}
     // Create a plane to hold the paint texture to be rendered
-    const renderGeom = new T.PlaneGeometry(2, 2); // Full-screen plane
-    const plane = new T.Mesh(renderGeom, paintMat);
-    plane.position.set(0, 0, -1);  // Place it in front of the camera
-    renderScene.add(plane);
+    paintables.forEach((paintable) => {
+      console.log(paintable)
+      let paintMat = shaderMaterial("./shaders/paint.vs", "./shaders/paint.fs", {
+          uniforms: {tex: {value: paintable.material.uniforms.dirty.value}, point: {value: new T.Vector2(-10, -10)}, point2: {value: new T.Vector2(-10, -10)}, point3: {value: new T.Vector2(-10, -10)}, point4: {value: new T.Vector2(-10, -10)}, point5: {value: new T.Vector2(-10, -10)}, size: {value: 0.1}}
+      });
+      const renderGeom = new T.PlaneGeometry(2, 2); // Full-screen plane
+      const plane = new T.Mesh(renderGeom, paintMat);
+      plane.position.set(0, 0, -1);  // Place it in front of the camera
+      renderScene.add(plane);
+      plane.visible = false;
+      renderPlanes[paintable.name] = plane
+    });
+
 
     // Create a WebGLRenderTarget to render paint to
     this.renderTarget = new T.WebGLRenderTarget(512, 512,  {
@@ -40,11 +44,10 @@ export class Painter{
 
     this.renderScene = renderScene
     this.camera = camera
-    this.plane = plane
-    this.mat = paintMat
+    this.renderPlanes = renderPlanes
     this.lastPaint = 0
         
-
+    
     const geometry = new T.PlaneGeometry(4, 4);
     let debugMat = shaderMaterial("./shaders/texture.vs", "./shaders/texture.fs", {
         uniforms: {tex: {value: this.renderTarget.texture}}
@@ -65,36 +68,37 @@ export class Painter{
    */
   paint() {
 
-    if (this.points.length > 0 && this.target.material.uniforms.tex.value.image && this.mat.uniforms.tex.value.image) {
+    if (this.points.length > 0 && this.target.material.uniforms.tex.value.image) {
         if(this.target.material.uniforms.isClean.value){   
             return {name: this.target.name, dirtiness: 100}
         }
+        let plane = this.renderPlanes[this.target.name]
+        let mat = plane.material
         if(this.target.size){
             
-            this.mat.uniforms.size.value = this.target.size * this.power * this.godmode
+            mat.uniforms.size.value = this.target.size * this.power * this.godmode
         }
         else{
-            this.mat.uniforms.size.value = .2 * this.power * this.godmode
+            mat.uniforms.size.value = .2 * this.power * this.godmode
         }
         let oldSize = new T.Vector2()
         this.renderer.getSize(oldSize)
-        this.mat.uniforms.point.value = this.points[0]
-        if(this.points.length > 1) this.mat.uniforms.point2.value = this.points[1]
-        else this.mat.uniforms.point2.value = this.empty
-        if(this.points.length > 2) this.mat.uniforms.point3.value = this.points[2]
-        else this.mat.uniforms.point3.value = this.empty
-        if(this.points.length > 3) this.mat.uniforms.point4.value = this.points[3]
-        else this.mat.uniforms.point4.value = this.empty
-        if(this.points.length > 4) this.mat.uniforms.point5.value = this.points[4]
-        else this.mat.uniforms.point5.value = this.empty
+        mat.uniforms.point.value = this.points[0]
+        if(this.points.length > 1) mat.uniforms.point2.value = this.points[1]
+        else mat.uniforms.point2.value = this.empty
+        if(this.points.length > 2) mat.uniforms.point3.value = this.points[2]
+        else mat.uniforms.point3.value = this.empty
+        if(this.points.length > 3) mat.uniforms.point4.value = this.points[3]
+        else mat.uniforms.point4.value = this.empty
+        if(this.points.length > 4) mat.uniforms.point5.value = this.points[4]
+        else mat.uniforms.point5.value = this.empty
         
 
-        
-        this.renderer.copyTextureToTexture(this.target.material.uniforms.dirty.value, this.mat.uniforms.tex.value)
-
+        plane.visible = true
         this.renderer.setSize(512, 512)
         this.renderer.setRenderTarget(this.renderTarget)
         this.renderer.render(this.renderScene, this.camera)
+        plane.visible = false
 
         //how much left?
         const pixels = new Uint8Array(512 * 512 * 4);  // *4 because RGBA, 4 per pixel
