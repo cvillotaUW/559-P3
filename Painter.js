@@ -20,9 +20,10 @@ export class Painter{
 
 
     let renderPlanes = {}
+    let lastDirt = {}
+    let lastCheck = {}
     // Create a plane to hold the paint texture to be rendered
     paintables.forEach((paintable) => {
-      console.log(paintable)
       let paintMat = shaderMaterial("./shaders/paint.vs", "./shaders/paint.fs", {
           uniforms: {tex: {value: paintable.material.uniforms.dirty.value}, point: {value: new T.Vector2(-10, -10)}, point2: {value: new T.Vector2(-10, -10)}, point3: {value: new T.Vector2(-10, -10)}, point4: {value: new T.Vector2(-10, -10)}, point5: {value: new T.Vector2(-10, -10)}, size: {value: 0.1}}
       });
@@ -32,6 +33,8 @@ export class Painter{
       renderScene.add(plane);
       plane.visible = false;
       renderPlanes[paintable.name] = plane
+      lastDirt[paintable.name] = paintable.start
+      lastCheck[paintable.name] = 0
     });
 
 
@@ -45,6 +48,8 @@ export class Painter{
     this.renderScene = renderScene
     this.camera = camera
     this.renderPlanes = renderPlanes
+    this.lastCheck = lastCheck
+    this.lastDirt = lastDirt
     this.lastPaint = 0
         
     
@@ -101,31 +106,37 @@ export class Painter{
         plane.visible = false
 
         //how much left?
-        const pixels = new Uint8Array(512 * 512 * 4);  // *4 because RGBA, 4 per pixel
-        this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 512, 512, pixels);
+        let redness = this.lastDirt[this.target.name]
+        if(this.lastCheck[this.target.name] > 20){
+          const pixels = new Uint8Array(512 * 512 * 4);  // *4 because RGBA, 4 per pixel
+          this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 512, 512, pixels);
 
-        let totalRed = 0;
+          let totalRed = 0;
 
-        // Red is dirty mask, all we need
-        for (let i = 0; i < pixels.length; i += 4) {
-            const red = pixels[i];
-            totalRed += red;
+          // Red is dirty mask, all we need
+          for (let i = 0; i < pixels.length; i += 4) {
+              const red = pixels[i];
+              totalRed += red;
+          }
+
+          const possibleRed = (pixels.length / 4) * 255
+          redness = totalRed / possibleRed * 100;  // As a percentage
+          this.lastDirt[this.target.name] = redness
+          this.lastCheck[this.target.name] = 0
+
         }
-
-        const possibleRed = (pixels.length / 4) * 255
-        const redness = totalRed / possibleRed * 100;  // As a percentage
-
+        this.lastCheck[this.target.name] += 1
         //based on start/end
         let end = this.target.end ? this.target.end : 5
         let start = this.target.start ? this.target.start : 57
-
-        this.renderer.setRenderTarget(null)
         if(redness < end){
             this.target.material.uniforms.isClean.value = true
         }    
         
         this.renderer.copyTextureToTexture(this.renderTarget.texture, this.target.material.uniforms.dirty.value)
         this.renderer.setSize(oldSize.x, oldSize.y)
+        this.renderer.setRenderTarget(null)
+
         let percentClean = (redness-start)/(end-start)*100
         return {name: this.target.name, dirtiness: percentClean}
     }
